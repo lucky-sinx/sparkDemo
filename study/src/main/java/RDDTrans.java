@@ -43,8 +43,9 @@ public class RDDTrans {
     @Test
     public void testFold() {
         //fold的求和操作,每个分区会从zeroValue开始进行类似于reduce的操作,若结果>200,说明是有两个分区
-        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6));
-        Integer fold = rdd.fold(100, (Function2<Integer, Integer, Integer>) (x, y) -> (x + y));
+        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6),2);
+        System.out.println(rdd.getNumPartitions());
+        Integer fold = rdd.fold(1000, (Function2<Integer, Integer, Integer>) (x, y) ->{ System.out.printf("??????x=%d,y=%d\n",x,y);return (x + y);});
         System.out.println(fold);
     }
 

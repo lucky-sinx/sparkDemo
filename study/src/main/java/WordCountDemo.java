@@ -19,7 +19,7 @@ public class WordCountDemo {
         JavaPairRDD<String, Integer> wordCountOne = words.mapToPair((PairFunction<String, String, Integer>) s -> new Tuple2<>(s, 1));
         wordCountOne.collect().forEach(System.out::println);
         JavaPairRDD<String, Integer> wordCounts = wordCountOne.reduceByKey((Function2<Integer, Integer, Integer>) (x, y) -> (x + y));
-
+        wordCounts.collect().forEach(System.out::println);
         //wordCounts.saveAsTextFile("D:\\code\\java\\sparkDemo\\study\\src\\main\\resources\\wcOutput");
     }
 }
