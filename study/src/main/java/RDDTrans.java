@@ -1,17 +1,19 @@
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.VoidFunction;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class RDDTrans {
     SparkConf conf = new SparkConf().setMaster("local").setAppName("my app");
     JavaSparkContext sc = new JavaSparkContext(conf);
+    JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6));
 
     @Test
     public void testMap() {
@@ -43,9 +45,12 @@ public class RDDTrans {
     @Test
     public void testFold() {
         //fold的求和操作,每个分区会从zeroValue开始进行类似于reduce的操作,若结果>200,说明是有两个分区
-        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6),2);
+        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6), 2);
         System.out.println(rdd.getNumPartitions());
-        Integer fold = rdd.fold(1000, (Function2<Integer, Integer, Integer>) (x, y) ->{ System.out.printf("??????x=%d,y=%d\n",x,y);return (x + y);});
+        Integer fold = rdd.fold(1000, (Function2<Integer, Integer, Integer>) (x, y) -> {
+            System.out.printf("??????x=%d,y=%d\n", x, y);
+            return (x + y);
+        });
         System.out.println(fold);
     }
 
@@ -61,4 +66,30 @@ public class RDDTrans {
         );
         System.out.println(avg[0] / (double) avg[1]);
     }
+
+    @Test
+    public void testMapPartitions() {
+        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)).repartition(4);
+
+        System.out.println(rdd.map((Function<Integer, Integer>) integer -> {
+            System.out.println(integer);
+            return integer * 2;
+        }).collect());
+
+        System.out.println(rdd.mapPartitions((FlatMapFunction<Iterator<Integer>, Integer>) temp -> {
+            List<Integer> res = new LinkedList<>();
+            temp.forEachRemaining(x -> res.add(x * 2));
+            System.out.println(res);
+            return res.iterator();
+        }).collect());
+    }
+
+    @Test
+    public void testForEach(){
+        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),3);
+        rdd.repartition(3).foreach((VoidFunction<Integer>) x->{
+            System.out.println(x);
+        });
+    }
+
 }
