@@ -86,7 +86,7 @@ public class RDDTrans {
 
     @Test
     public void testForEach(){
-        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),3);
+        JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
         rdd.repartition(3).foreach((VoidFunction<Integer>) x->{
             System.out.println(x);
         });
