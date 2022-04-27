@@ -1,4 +1,5 @@
-import org.apache.spark.Accumulable;
+package acc;
+
 import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
