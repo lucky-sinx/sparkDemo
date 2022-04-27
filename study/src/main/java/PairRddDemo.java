@@ -109,7 +109,7 @@ public class PairRddDemo {
     @Test
     public void testCoGroup() {
         //是join操作的关键
-        pairs1.cogroup(pairs2).collect().forEach(System.out::println);
+        pairs1.cogroup(pairs3).collect().forEach(System.out::println);
     }
 
     @Test
