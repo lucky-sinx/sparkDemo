@@ -2,7 +2,7 @@ package practice1;
 
 import java.io.Serializable;
 
-public class UserData implements Serializable {
+public class ActionData implements Serializable {
     String dateTime;
     Long userId;
     String sessionID;
@@ -17,13 +17,13 @@ public class UserData implements Serializable {
     String pay_product_ids;//一次支付中所有商品的 ID 集合
     Long cityId; //城市 id
 
-    public UserData(){
+    public ActionData(){
 
     }
 
-    public UserData(String dateTime, Long userId, String sessionID, Long pageId, String actionTime, String keyWord,
-                    Long clickCategoryId, Long clickProductId, String orderCategoryIds, String orderProductIds,
-                    String payCategoryIds, String pay_product_ids, Long cityId) {
+    public ActionData(String dateTime, Long userId, String sessionID, Long pageId, String actionTime, String keyWord,
+                      Long clickCategoryId, Long clickProductId, String orderCategoryIds, String orderProductIds,
+                      String payCategoryIds, String pay_product_ids, Long cityId) {
         this.dateTime = dateTime;
         this.userId = userId;
         this.sessionID = sessionID;
