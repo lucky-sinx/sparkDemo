@@ -4,17 +4,12 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.api.java.function.*;
 import scala.Serializable;
 import scala.Tuple2;
 import scala.Tuple3;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class Top10HotCategory_1 {
@@ -26,50 +21,29 @@ public class Top10HotCategory_1 {
         //1.切分原始数据
         JavaRDD<String[]> dataRDD = fileRDD.map((Function<String, String[]>) s -> s.split("_"));
 
-        //2.统计品类的点击数量
-        JavaRDD<String[]> actionRDD = dataRDD.filter((Function<String[], Boolean>) strings -> {
-            return !strings[6].equals("-1");
-        });//为-1说明不是点击数据
-
-        JavaPairRDD<String, Integer> clickCntRDD = actionRDD
-                .mapToPair((PairFunction<String[], String, Integer>) strings -> new Tuple2<>(strings[6], 1))
-                .reduceByKey((Function2<Integer, Integer, Integer>) (a, b) -> (a + b));
-
-        System.out.println(clickCntRDD.take(5));
-
-        //3.统计下单数量
-        JavaRDD<String[]> orderRDD = dataRDD.filter((Function<String[], Boolean>) strings -> {
-            return !strings[8].equals("null");
-        });
-
-        JavaPairRDD<String, Integer> orderCntRDD = orderRDD
-                .flatMap((FlatMapFunction<String[], String>) strings -> Arrays.stream(strings[8].split(",")).iterator())  //获取这个订单额所有品类并展开flat
-                .mapToPair((PairFunction<String, String, Integer>) s -> new Tuple2<>(s, 1))
-                .reduceByKey((Function2<Integer, Integer, Integer>) (a, b) -> (a + b));
-
-        System.out.println(orderCntRDD.take(5));
-
-        //4.统计支付行为
-        JavaRDD<String[]> payRDD = dataRDD.filter((Function<String[], Boolean>) strings -> {
-            return !strings[10].equals("null");
-        });
-        JavaPairRDD<String, Integer> payCntRDD = payRDD
-                .flatMap((FlatMapFunction<String[], String>) strings -> Arrays.stream(strings[10].split(",")).iterator())  //获取这个订单额所有品类并展开flat
-                .mapToPair((PairFunction<String, String, Integer>) s -> new Tuple2<>(s, 1))
-                .reduceByKey((Function2<Integer, Integer, Integer>) (a, b) -> (a + b));
-
-        System.out.println(payCntRDD.take(5));
-        //5.排序取前5
-
-        //不用coGroup
-        JavaPairRDD<String, int[]> expandRDD = clickCntRDD.mapToPair((PairFunction<Tuple2<String, Integer>, String, int[]>) tuple -> {
-            return new Tuple2<>(tuple._1(), new int[]{tuple._2(), 0, 0});
-        }).union(orderCntRDD.mapToPair((PairFunction<Tuple2<String, Integer>, String, int[]>) tuple -> {
-            return new Tuple2<>(tuple._1(), new int[]{0, tuple._2(), 0});
-        })).union(payCntRDD.mapToPair((PairFunction<Tuple2<String, Integer>, String, int[]>) tuple -> {
-            return new Tuple2<>(tuple._1(), new int[]{0, 0, tuple._2()});
-        })).reduceByKey((Function2<int[], int[], int[]>) (a,b)->{
-            return new int[]{a[0]+b[0],a[1]+b[1],a[2]+b[2]};
+        //2.一次将品类的点击、下单、支付统计成(?,?,?)的形式
+        JavaPairRDD<String, int[]> expandRDD = dataRDD.flatMapToPair(new PairFlatMapFunction<String[], String, int[]>() {
+            @Override
+            public Iterator<Tuple2<String, int[]>> call(String[] strings) throws Exception {
+                List<Tuple2<String, int[]>> res = new LinkedList<>();
+                if (!strings[6].equals("-1")) {
+                    res.add(new Tuple2<>(strings[6], new int[]{1, 0, 0}));
+                } else if (!strings[8].equals("null")) {
+                    Arrays.stream(strings[8].split(",")).forEach((Consumer<? super String>) s -> {
+                        res.add(new Tuple2<>(s, new int[]{0, 1, 0}));
+                    });
+                } else if (!strings[10].equals("null")) {
+                    Arrays.stream(strings[10].split(",")).forEach((Consumer<? super String>) s -> {
+                        res.add(new Tuple2<>(s, new int[]{0, 0, 1}));
+                    });
+                }
+                return res.iterator();
+            }
+        }).reduceByKey(new Function2<int[], int[], int[]>() {
+            @Override
+            public int[] call(int[] ints, int[] ints2) throws Exception {
+                return new int[]{ints[0] + ints2[0], ints[1] + ints2[1], ints[2] + ints2[2]};
+            }
         });
 
         expandRDD.collect().forEach((Consumer<? super Tuple2<String, int[]>>) tuple -> {
@@ -81,7 +55,7 @@ public class Top10HotCategory_1 {
                         sortByKey(new MyComparator());
 
         resultRDD.collect().forEach((Consumer<? super Tuple2<int[], String>>) tuple -> {
-            System.out.printf("%s:%d,%d,%d\n", tuple._2(), tuple._1()[0], tuple._1()[1], tuple._1()[2]);
+            System.out.printf("%s:[%d,%d,%d]\n", tuple._2(), tuple._1()[0], tuple._1()[1], tuple._1()[2]);
         });
     }
 }
