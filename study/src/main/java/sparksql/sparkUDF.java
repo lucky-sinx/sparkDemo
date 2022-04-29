@@ -10,10 +10,7 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.Test;
-import scala.Function;
-import scala.reflect.ClassTag;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
 public class sparkUDF {
