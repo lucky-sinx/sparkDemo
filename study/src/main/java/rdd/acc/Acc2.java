@@ -1,10 +1,10 @@
 package rdd.acc;
 
-import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.util.LongAccumulator;
 
 import java.util.Arrays;
 
@@ -14,13 +14,13 @@ public class Acc2 {
         JavaSparkContext sc = new JavaSparkContext(conf);
 
         JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4));
-        Accumulator<Integer> accumulator = sc.accumulator(0);
+        LongAccumulator longAccumulator = sc.sc().longAccumulator();
         rdd.foreach(new VoidFunction<Integer>() {
             @Override
             public void call(Integer integer) throws Exception {
-                accumulator.add(integer);
+                longAccumulator.add(1L);
             }
         });
-        System.out.println(accumulator.value());
+        System.out.println(longAccumulator.value());
     }
 }

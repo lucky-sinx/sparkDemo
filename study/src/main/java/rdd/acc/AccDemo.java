@@ -1,11 +1,11 @@
 package rdd.acc;
 
-import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.util.LongAccumulator;
 import org.junit.Test;
 
 import java.io.Serializable;
@@ -31,7 +31,7 @@ public class AccDemo {
             "hello14",
             "hello15"
         ));
-        Accumulator<Integer> accumulator = sc.accumulator(0);
+        LongAccumulator accumulator = sc.sc().longAccumulator();
         rdd.flatMap((FlatMapFunction<String, String>) s->{
             if(s.equals(""))accumulator.add(1);
             return Arrays.stream(s.split(" ")).iterator();

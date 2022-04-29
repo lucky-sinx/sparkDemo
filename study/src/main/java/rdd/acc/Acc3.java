@@ -1,10 +1,10 @@
 package rdd.acc;
 
-import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.util.LongAccumulator;
 
 import java.util.Arrays;
 
@@ -14,7 +14,7 @@ public class Acc3 {
         JavaSparkContext sc = new JavaSparkContext(conf);
 
         JavaRDD<Integer> rdd = sc.parallelize(Arrays.asList(1, 2, 3, 4));
-        Accumulator<Integer> accumulator = sc.accumulator(0);
+        LongAccumulator accumulator = sc.sc().longAccumulator();
 
         //转换算子没有执行算子就不会执行，导致少加
         JavaRDD<Integer> mapRDD = rdd.map(new Function<Integer, Integer>() {
