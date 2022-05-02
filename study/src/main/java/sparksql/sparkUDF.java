@@ -60,7 +60,7 @@ public class sparkUDF {
         Dataset<Row> df = spark.read().json(personFilePath);
         df.createOrReplaceTempView("user");
 
-        spark.udf().register("ageAvg",functions.udaf(new MyAvgUDAF2(),Encoders.LONG()));
+        //spark.udf().register("ageAvg",functions.udaf(new MyAvgUDAF2(),Encoders.LONG()));
         spark.sql("select ageAvg(age) from user").show();
     }
 }
