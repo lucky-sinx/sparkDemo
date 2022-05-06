@@ -1,4 +1,4 @@
-package mllib;
+package mllib.pipeline;
 import java.util.Arrays;
 import java.util.List;
 

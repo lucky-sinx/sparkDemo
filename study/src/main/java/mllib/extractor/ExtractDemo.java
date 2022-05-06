@@ -1,4 +1,4 @@
-package mllib;
+package mllib.extractor;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.ml.feature.CountVectorizer;
